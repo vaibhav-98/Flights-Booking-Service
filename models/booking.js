@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: INITIATED,
       allowNull: false
     },
-    noOfAEats: { 
+    noOfSeats: { 
       type:DataTypes.INTEGER,
       allowNull:false,
        defaultValue: 1
