@@ -2,11 +2,11 @@ const axios = require("axios");
 const { StatusCodes } = require("http-status-codes");
 
 const { BookingRepository } = require("../repositories");
-const { ServerConfig } = require("../config");
+const { ServerConfig,Queue } = require("../config");
 const db = require("../models");
 const AppError = require("../utils/errors/app-error");
 const { Enums } = require('../utils/common')
-const { BOOKED, CANCELLED,INITIATED,PENDING } = Enums.BOOKING_SATTUS;
+const { BOOKED, CANCELLED,INITIATED,PENDING } = Enums.BOOKING_SATTUS; 
 
 const bookingRepository = new BookingRepository();
 
@@ -22,13 +22,9 @@ async function createBooking(data) {
     }
     const totalBillingAmount = data.noOfSeats * flightData.price;
  
-    
     const bookingPayload = { ...data, totalCost: totalBillingAmount };
     
-    
     const booking = await bookingRepository.create(bookingPayload, transaction);
-     
-     
      await axios.patch(
       `${ServerConfig.FLIGHT_SERVICE}/api/v1/flights/${data.flightId}/seats`,
       {
@@ -73,6 +69,11 @@ async function createBooking(data) {
       // we assume here that payment is sccessful 
       const response = await bookingRepository.update(data.bookingId, {status:BOOKED}, transaction);
       await transaction.commit();
+      Queue.sendData({
+      recepientEmail: "abc@email.com",
+      subject: "Flight Booked",
+      text:`Booking successfully done for the flight ${data.bookingId}`
+    })
    } catch (error) {
       await transaction.rollback()
       throw error
