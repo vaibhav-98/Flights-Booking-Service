@@ -6,11 +6,12 @@ const { SuccessResponse, ErrorResponse } = require("../utils/common");
 const inMemDb = {};
 
 async function createBooking(req, res) {
+    
     try {
          
         const response = await BookingService.createBooking({
             flightId: req.body.flightId,
-            userId: req.body.userId,
+            userId: req.body.userId, // API Gateway -> Singin -> JWT -> userId 
             noOfSeats: req.body.noOfSeats
         });
         SuccessResponse.data = response;
@@ -27,6 +28,7 @@ async function createBooking(req, res) {
 
 
 async function makePayment(req, res) {
+  
     try {
          const idempotencyKey = req.headers['x-idempotency-key']
          if(!idempotencyKey) {
@@ -39,9 +41,10 @@ async function makePayment(req, res) {
                 .status(StatusCodes.BAD_REQUEST)
                 .json({message: 'Connot retry on a successful payment'});
          }
+         
         const response = await BookingService.makePayment({
             totalCost: req.body.totalCost,
-            userId: req.body.userId,
+            userId: req.body.userId, // API-Gateway ---
            bookingId: req.body.bookingId
         });
         inMemDb[idempotencyKey] = idempotencyKey
