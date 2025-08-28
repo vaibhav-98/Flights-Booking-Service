@@ -37,7 +37,7 @@ async function makePayment(req, res) {
         .json({ message: "Idempotency key missing" });
     }
 
-    // ✅ Check if key already used
+    //  Check if key already used
     const existing = await db.IdempotencyKey.findOne({
       where: { key: idempotencyKey },
     });
@@ -46,7 +46,7 @@ async function makePayment(req, res) {
       return res.status(StatusCodes.OK).json(existing.response);
     }
 
-    // ✅ Check if booking is already paid
+    //  Check if booking is already paid
     const booking = await db.Booking.findByPk(req.body.bookingId);
     if (booking && booking.status === "booked") {
       return res.status(StatusCodes.OK).json({
@@ -56,14 +56,14 @@ async function makePayment(req, res) {
       });
     }
 
-    // ✅ Process payment
+    //  Process payment
     const response = await BookingService.makePayment({
       totalCost: req.body.totalCost,
       userId: req.body.userId,
       bookingId: req.body.bookingId,
     });
 
-    // ✅ Save idempotency key
+    //  Save idempotency key
     await db.IdempotencyKey.create({
       key: idempotencyKey,
       response: {
